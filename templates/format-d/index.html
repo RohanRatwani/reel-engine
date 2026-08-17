@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <!--
+      ═══════════════════════════════════════════════════════════════════════
+      FORMAT D — one clip, one line, detail in the caption
+      6 to 8 seconds. One hook line, one supporting chip, one CTA. That is it.
+
+      WHY THIS BEATS A LONGER MULTI-CARD VIDEO:
+      A 7 second clip read alongside a long caption gets looped 5 or 10 times,
+      which reads as several hundred percent retention — a metric platforms
+      weight heavily. A 20 second card-stack has a drop-off point every few
+      seconds and caps at 100%. It is also ~20 seconds of render and almost no
+      risk of looking like generated slop.
+
+      ROUTE HERE when the payload is REFERENCE MATERIAL: file paths, config
+      keys, tool names, steps. Nobody absorbs `.claude/skills/x/SKILL.md` at
+      3 seconds a card. That content is caption-shaped.
+      Use format-e instead when the idea is visual: comparisons, stages,
+      before/after.
+
+      TO USE THIS:
+        1. vertical clip at assets/broll.mp4 (at least as long as data-duration
+           or you get a frozen/black tail)
+        2. Space Grotesk + JetBrains Mono woff2 in fonts/
+        3. edit the hook, chip and CTA
+        4. npx hyperframes lint && npx hyperframes render
+      ═══════════════════════════════════════════════════════════════════════
+    -->
+    <style>
+      @font-face { font-family:"Space Grotesk"; src:url("fonts/spacegrotesk-500.woff2") format("woff2"); font-weight:500; font-display:block; }
+      @font-face { font-family:"JetBrains Mono"; src:url("fonts/jetbrainsmono-500.woff2") format("woff2"); font-weight:500; font-display:block; }
+      * { margin:0; padding:0; box-sizing:border-box; }
+      html, body { width:1080px; height:1920px; overflow:hidden; background:#0e0e0e; }
+      #root { container-type:size; font-family:"Space Grotesk", sans-serif; }
+
+      video.fill { position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+        will-change:transform; backface-visibility:hidden; }
+
+      /* A real scrim, not just a text-shadow. Light text over a bright wall or a
+         sunlit window is genuinely unreadable, and text-shadow alone will not
+         save you. This is the fix. */
+      #scrim { position:absolute; inset:0;
+        background:linear-gradient(180deg, rgba(12,11,10,0.80) 0%, rgba(12,11,10,0.55) 26%,
+                   rgba(12,11,10,0.12) 50%, rgba(12,11,10,0.0) 62%, rgba(12,11,10,0.55) 100%); }
+
+      /* Hook: 8 words maximum. It has one job, which is to stop the scroll. */
+      #hook { position:absolute; left:7cqw; right:7cqw; top:11cqh;
+        font-weight:500; font-size:8.4cqw; line-height:1.12; letter-spacing:-0.015em;
+        color:#f7f2e6; text-shadow:0 0.3cqw 1.8cqw rgba(0,0,0,0.55); }
+      /* exactly ONE accent word per frame, never more */
+      #hook .accent { color:#f0a87a; }
+
+      #chipwrap { position:absolute; left:0; right:0; top:32cqh; text-align:center; }
+      #chip { display:inline-block; font-family:"JetBrains Mono"; font-weight:500;
+        font-size:2.5cqw; letter-spacing:0.16em; text-transform:uppercase; color:#161513;
+        background:#f0c860; padding:1.5cqw 3cqw; border-radius:1.2cqw; }
+
+      #ctawrap { position:absolute; left:0; right:0; bottom:15cqh; text-align:center; }
+      #cta { display:inline-block; background:#efe6d6; color:#161513;
+        font-weight:500; font-size:3.4cqw; padding:2.2cqw 4.4cqw; border-radius:1.8cqw;
+        box-shadow:0 0.7cqw 0 #161513; }
+
+      #handle { position:absolute; left:0; right:0; bottom:8cqh; text-align:center;
+        font-family:"JetBrains Mono"; font-weight:500; font-size:2.1cqw;
+        letter-spacing:0.12em; color:#f3ecd9; text-shadow:0 0.2cqw 1cqw rgba(0,0,0,0.7); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="7" data-width="1080" data-height="1920">
+
+      <!-- ⚠️ <video> MUST be a direct child of #root. Wrap it in a div and it
+           renders BLACK. Must also be a muted file — an audio-bearing video can
+           trip a symlink path that fails on Windows. -->
+      <video id="v1" class="fill" src="assets/broll.mp4" data-start="0" data-duration="7"
+             data-track-index="1" data-media-start="0" muted playsinline
+             style="object-position:50% 38%"></video>
+
+      <div id="scrim" class="clip" data-start="0" data-duration="7" data-track-index="5"></div>
+
+      <div id="hook" class="clip" data-start="0" data-duration="7" data-track-index="20">
+        Your hook goes <span class="accent">here.</span>
+      </div>
+
+      <div id="chipwrap" class="clip" data-start="0" data-duration="7" data-track-index="21">
+        <span id="chip">supporting chip</span>
+      </div>
+
+      <div id="ctawrap" class="clip" data-start="0" data-duration="7" data-track-index="22">
+        <span id="cta">full breakdown in the caption</span>
+      </div>
+
+      <div id="handle" class="clip" data-start="0" data-duration="7" data-track-index="23">
+        @yourhandle
+      </div>
+
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      /* A slow push matters more than you would think. Without it a 7 second
+         loop reads as a still image and people scroll straight past. */
+      tl.fromTo("#v1", { scale: 1.0 }, { scale: 1.07, duration: 7, ease: "none" }, 0);
+
+      /* The hook is set visible at 0, not faded in. On a 7 second reel a 0.5s
+         fade is 7% of the whole thing spent unreadable, inside the exact window
+         where the scroll decision happens. Only supporting elements animate. */
+      tl.set("#hook", { opacity: 1 }, 0);
+
+      tl.fromTo("#chip",   { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 0.35);
+      tl.fromTo("#cta",    { opacity: 0, y: 20 },      { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.6);
+      tl.fromTo("#handle", { opacity: 0 },             { opacity: 1, duration: 0.5 }, 0.8);
+
+      window.__timelines = { main: tl };
+    </script>
+  </body>
+</html>

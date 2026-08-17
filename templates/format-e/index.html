@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <!--
+      ═══════════════════════════════════════════════════════════════════════
+      FORMAT E — the red/green list
+      The most shareable structure there is, because the finished frame is a
+      checklist and people forward checklists. Save-driving too: nobody
+      memorises six pairs in fifteen seconds.
+
+      THE MECHANIC, and it is the whole point:
+      All the bars land FIRST, censored. The viewer can count how many answers
+      are still hidden. Then one row unmasks per beat. That beats a progress
+      bar, because the unread rows are visibly right there and covered up. And
+      the final state is the complete list, so you never need a recap frame.
+
+      Replacing one pair at a time (show pair, hide pair, show next) is the
+      weaker variant. Don't.
+
+      TO USE THIS:
+        1. put a vertical clip at assets/broll.mp4
+        2. put Space Grotesk + JetBrains Mono woff2 in fonts/  (both free on
+           Google Fonts). Every family you name needs its own @font-face or
+           `hyperframes lint` errors with font_family_without_font_face.
+        3. edit the hook, the title, and the six rows below
+        4. npx hyperframes lint && npx hyperframes render
+
+      ADDING A VOICEOVER: build it silent first, record at your natural pace,
+      transcribe for word timings, then move RED[] and GREEN[] onto the actual
+      onsets. Do not force your voice to fit these numbers — move the numbers.
+      ═══════════════════════════════════════════════════════════════════════
+    -->
+    <style>
+      @font-face { font-family:"Space Grotesk"; src:url("fonts/spacegrotesk-500.woff2") format("woff2"); font-weight:500; font-display:block; }
+      @font-face { font-family:"JetBrains Mono"; src:url("fonts/jetbrainsmono-500.woff2") format("woff2"); font-weight:500; font-display:block; }
+      * { margin:0; padding:0; box-sizing:border-box; }
+      html, body { width:1080px; height:1920px; overflow:hidden; background:#0e0e0e; }
+      #root { container-type:size; background:#0e0e0e; color:#f7f2e6;
+        font-family:"Space Grotesk", sans-serif; }
+
+      video.fill { position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+        will-change:transform; backface-visibility:hidden; }
+      /* ⚠️ .blurred carries ONLY filter. GSAP owns `scale` on this element, and a
+         CSS transform on the same element is a hard lint error. */
+      .blurred { filter:blur(2.2cqw) brightness(0.55); }
+
+      /* ---- ACT 1: the hook ----------------------------------------------
+         Write the hook as THE VIEWER'S OWN SENTENCE, in quotes. Not a title,
+         not "6 things you're doing wrong" — that is a table of contents.
+         Someone who has had this exact thought is already watching. Someone
+         who hasn't was never your audience. */
+      #hookscrim { position:absolute; inset:0;
+        background:linear-gradient(180deg, rgba(10,9,8,0.72) 0%, rgba(10,9,8,0.42) 34%,
+                   rgba(10,9,8,0.10) 58%, rgba(10,9,8,0.55) 100%); }
+      #hook { position:absolute; left:7cqw; right:30cqw; top:30cqh;
+        font-weight:500; font-size:7.4cqw; line-height:1.16; letter-spacing:-0.015em;
+        color:#ffffff; text-shadow:0 0.3cqw 1.8cqw rgba(0,0,0,0.75); }
+
+      /* ---- ACT 2: the list ---- */
+      #listscrim { position:absolute; inset:0; background:rgba(10,9,8,0.42); }
+
+      #titlewrap { position:absolute; left:0; right:0; top:9cqh; text-align:center; }
+      #title { display:inline-block; background:#fdfdfb; color:#14110d;
+        font-weight:500; font-size:4.4cqw; letter-spacing:-0.01em;
+        padding:1.8cqw 3.4cqw; border-radius:1.4cqw;
+        box-shadow:0 0.6cqw 2cqw rgba(0,0,0,0.4); }
+
+      #cols { position:absolute; left:5cqw; right:5cqw; top:22cqh; }
+      #heads { display:flex; gap:3cqw; margin-bottom:3.4cqh; }
+      .head { flex:1; font-weight:500; font-size:4.4cqw; letter-spacing:-0.01em; }
+      .head.h1 { color:#ff4d3d; }
+      .head.h2 { color:#3ddc9a; }
+
+      .row { display:flex; gap:3cqw; margin-bottom:3.1cqh; align-items:stretch; }
+      .cell { flex:1; position:relative; min-height:6.4cqh; }
+      .bar { position:absolute; inset:0; border-radius:0.7cqw; }
+      .c1 .bar { background:#ff4d3d; }
+      .c2 .bar { background:#3ddc9a; }
+      .word { position:absolute; inset:0; display:flex; align-items:center;
+        font-weight:500; font-size:3.9cqw; letter-spacing:-0.005em; line-height:1.14; }
+      /* the "don't" side loses the contrast fight on purpose */
+      .c1 .word { color:#f2d9d5; }
+      .c2 .word { color:#ffffff; }
+
+      #cta { position:absolute; left:0; right:0; bottom:10.5cqh; text-align:center; }
+      #ctap { display:inline-block; background:#fdfdfb; color:#14110d;
+        font-weight:500; font-size:3.4cqw; padding:2.2cqw 4.4cqw; border-radius:1.6cqw;
+        box-shadow:0 0.7cqw 0 rgba(0,0,0,0.55); }
+
+      #handle { position:absolute; left:0; right:0; bottom:7cqh; text-align:center;
+        font-family:"JetBrains Mono"; font-weight:500; font-size:2.1cqw;
+        letter-spacing:0.12em; color:#f3ecd9; text-shadow:0 0.2cqw 1cqw rgba(0,0,0,0.8); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="19.5" data-width="1080" data-height="1920">
+
+      <!-- ACT 1 — sharp footage under the quoted hook -->
+      <video id="v1" class="fill" src="assets/broll.mp4" data-start="0" data-duration="3.3"
+             data-track-index="1" data-media-start="0" muted playsinline
+             style="object-position:50% 34%"></video>
+
+      <!-- ACT 2 — same clip, blurred, as the ground for the list -->
+      <video id="v2" class="fill blurred" src="assets/broll.mp4" data-start="3.3" data-duration="16.2"
+             data-track-index="2" data-media-start="3.3" muted playsinline
+             style="object-position:50% 34%"></video>
+
+      <div id="hookscrim" class="clip" data-start="0" data-duration="3.3" data-track-index="4"></div>
+      <div id="hook" class="clip" data-start="0" data-duration="3.3" data-track-index="5">
+        &ldquo;I want to X, but I don&rsquo;t know how&rdquo;
+      </div>
+
+      <div id="listscrim" class="clip" data-start="3.3" data-duration="16.2" data-track-index="6"></div>
+
+      <div id="titlewrap" class="clip" data-start="3.4" data-duration="16.1" data-track-index="10">
+        <span id="title">6 things to change today</span>
+      </div>
+
+      <div id="cols" class="clip" data-start="3.4" data-duration="16.1" data-track-index="11">
+        <div id="heads">
+          <span class="head h1">stop doing</span>
+          <span class="head h2">do this instead</span>
+        </div>
+        <!-- Keep each side to ~4 words. If a pair needs a sentence it is the
+             wrong pair. 4 to 6 rows total; six is already pushing it. -->
+        <div class="row" id="row1">
+          <span class="cell c1"><span class="bar" id="b1a"></span><span class="word" id="w1a">don&rsquo;t one</span></span>
+          <span class="cell c2"><span class="bar" id="b1b"></span><span class="word" id="w1b">do one</span></span>
+        </div>
+        <div class="row" id="row2">
+          <span class="cell c1"><span class="bar" id="b2a"></span><span class="word" id="w2a">don&rsquo;t two</span></span>
+          <span class="cell c2"><span class="bar" id="b2b"></span><span class="word" id="w2b">do two</span></span>
+        </div>
+        <div class="row" id="row3">
+          <span class="cell c1"><span class="bar" id="b3a"></span><span class="word" id="w3a">don&rsquo;t three</span></span>
+          <span class="cell c2"><span class="bar" id="b3b"></span><span class="word" id="w3b">do three</span></span>
+        </div>
+        <div class="row" id="row4">
+          <span class="cell c1"><span class="bar" id="b4a"></span><span class="word" id="w4a">don&rsquo;t four</span></span>
+          <span class="cell c2"><span class="bar" id="b4b"></span><span class="word" id="w4b">do four</span></span>
+        </div>
+        <div class="row" id="row5">
+          <span class="cell c1"><span class="bar" id="b5a"></span><span class="word" id="w5a">don&rsquo;t five</span></span>
+          <span class="cell c2"><span class="bar" id="b5b"></span><span class="word" id="w5b">do five</span></span>
+        </div>
+        <div class="row" id="row6">
+          <span class="cell c1"><span class="bar" id="b6a"></span><span class="word" id="w6a">don&rsquo;t six</span></span>
+          <span class="cell c2"><span class="bar" id="b6b"></span><span class="word" id="w6b">do six</span></span>
+        </div>
+      </div>
+
+      <div id="cta" class="clip" data-start="17.4" data-duration="2.1" data-track-index="20">
+        <span id="ctap">save this for later</span>
+      </div>
+
+      <div id="handle" class="clip" data-start="0" data-duration="19.5" data-track-index="90">
+        @yourhandle
+      </div>
+
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      /* Acts 1 and 2 are the same shot, so the push has to be CONTINUOUS across
+         the cut or the blur reads as a different clip entirely. */
+      tl.fromTo("#v1", { scale: 1.0 },  { scale: 1.05, duration: 3.3,  ease: "none" }, 0);
+      tl.fromTo("#v2", { scale: 1.06 }, { scale: 1.18, duration: 16.2, ease: "none" }, 3.3);
+
+      /* Hook is legible on frame 0. No fade-in — a fade spends the first half
+         second of your three-second decision window showing nothing readable. */
+      tl.set("#hook", { opacity: 1 }, 0);
+      tl.to("#hook", { opacity: 0, duration: 0.22, ease: "power2.inOut" }, 3.05);
+      tl.set("#hook", { opacity: 0 }, 3.3);
+
+      tl.fromTo("#title", { opacity: 0, y: -16 },
+                          { opacity: 1, y: 0, duration: 0.34, ease: "back.out(1.6)" }, 3.45);
+      tl.fromTo("#heads", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 3.6);
+
+      /* ALL BARS LAND FIRST — this is the retention device. */
+      for (let i = 1; i <= 6; i++) {
+        tl.fromTo(`#b${i}a`, { opacity: 0, scaleX: 0.3 },
+          { opacity: 1, scaleX: 1, duration: 0.26, ease: "power3.out" }, 3.7 + (i - 1) * 0.07);
+        tl.fromTo(`#b${i}b`, { opacity: 0, scaleX: 0.3 },
+          { opacity: 1, scaleX: 1, duration: 0.26, ease: "power3.out" }, 3.74 + (i - 1) * 0.07);
+        tl.set(`#w${i}a`, { opacity: 0 }, 0);
+        tl.set(`#w${i}b`, { opacity: 0 }, 0);
+      }
+
+      /* Then one row unmasks per beat. The bar wipes right-to-left and the words
+         are already underneath — the reveal IS the animation, so nothing else
+         needs to move.
+
+         WITH A VOICEOVER: replace these with the real onsets from your
+         transcript. RED on the word "stop", GREEN on the fix. */
+      const RED   = [4.9, 6.9,  8.9,  10.9, 12.9, 14.9];
+      const GREEN = [5.4, 7.4,  9.4,  11.4, 13.4, 15.4];
+      RED.forEach((at, i) => {
+        const n = i + 1;
+        const g = GREEN[i];
+        tl.to(`#b${n}a`, { scaleX: 0, transformOrigin: "right center", duration: 0.3, ease: "power2.inOut" }, at - 0.1);
+        tl.to(`#w${n}a`, { opacity: 1, duration: 0.24 }, at);
+        tl.to(`#b${n}b`, { scaleX: 0, transformOrigin: "right center", duration: 0.3, ease: "power2.inOut" }, g - 0.1);
+        tl.to(`#w${n}b`, { opacity: 1, duration: 0.24 }, g);
+      });
+
+      tl.fromTo("#ctap", { opacity: 0, y: 20 },
+                         { opacity: 1, y: 0, duration: 0.34, ease: "back.out(1.6)" }, 17.55);
+      tl.fromTo("#handle", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.5);
+
+      window.__timelines = { main: tl };
+    </script>
+  </body>
+</html>

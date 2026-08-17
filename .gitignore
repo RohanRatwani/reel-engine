@@ -1,0 +1,9 @@
+node_modules/
+renders/
+refs/
+assets/
+fonts/*.woff2
+*.mp4
+*.m4a
+*.wav
+words.json
