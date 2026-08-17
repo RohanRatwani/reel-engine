@@ -1,6 +1,6 @@
 ---
 name: reel-engine
-description: Build vertical short-form video (Instagram Reels, TikTok, YouTube Shorts) locally and for free, from footage to rendered MP4. Use when the user wants to make a reel or short, add word-synced captions to a clip, fix quiet or bad-sounding voiceover audio, conform phone footage for a vertical edit, cut clips out of a long recording, or study a reference reel from a link. Covers the whole pipeline: hook writing, HyperFrames composition, local Whisper transcription, ffmpeg loudness and colour, and render verification. No paid APIs, no subscriptions, nothing uploaded.
+description: "Build vertical short-form video (Instagram Reels, TikTok, YouTube Shorts) locally and for free, from footage to rendered MP4. Use when the user wants to make a reel or short, add word-synced captions to a clip, fix quiet or bad-sounding voiceover audio, conform phone footage for a vertical edit, cut clips out of a long recording, or study a reference reel from a link. Covers the whole pipeline: hook writing, HyperFrames composition, local Whisper transcription, ffmpeg loudness and colour, and render verification. No paid APIs, no subscriptions, nothing uploaded."
 ---
 
 # reel-engine
